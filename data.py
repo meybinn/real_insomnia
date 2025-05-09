@@ -25,6 +25,14 @@ df_selected['apnea'] = df_selected['ahi_a0h3'].apply(lambda x:1 if(x>=15)else 0)
 
 # print("!!!!!!!!!!!!",df_selected["apnea"].value_counts(),"!!!!!!!!!!!!")
 
+# 결측치 처리
+  # 결측치 처리 - 결측치 확인
+# print(df_selected.isna().sum()/len(df_selected))  # 결측치 비율 확인 -> 상태 양호            
+# print("null ",df_selected.isnull().sum())  # 확인 결과 df_selected[minsat]의 결측치는 모두 null임
+  # 결측치 처리 - null값들 처리
+df_selected.fillna(df_selected.mode().iloc[0],inplace=True) # 결측치를 각 열의 최빈값으로 채움
+# df_selected.fillna(df_selected.median(),inplace=True)  # 결측치를 평균값으로 채움
+
 # 이상치 처리  // IQR적용
 def remove_outliers_iqr(df,columns):
     for col in columns:
@@ -41,17 +49,21 @@ def remove_outliers_iqr(df,columns):
 df_selected = remove_outliers_iqr(df_selected, ['avgsat','minsat','pctsa85h','pctsa90h','ahi_a0h3'])
 df_selected.fillna(df_selected.mode().iloc[0], inplace=True)
 
-# 결측치 처리
+# 데이터 분리 (x,y,train/test)
+x = df_selected.drop(columns=['ahi_a0h3','apnea'])  # 특징 (features, 모델이 예측할 입력 데이터) - 개인 식별자, 불면증 여부, label을 제거한 값들이 x로 입력
+y = df_selected['apnea'] # 라벨 (예측해야 하는 결과값)
 
-  # 결측치 처리 - 결측치 확인
-# print(df_selected.isna().sum()/len(df_selected))  # 결측치 비율 확인 -> 상태 양호
-# print("null ",df_selected.isnull().sum())  # 확인 결과 df_selected[minsat]의 결측치는 모두 null임
-  # 결측치 처리 - null값들 처리
-df_selected.fillna(df_selected.mode().iloc[0],inplace=True) # 결측치를 각 열의 최빈값으로 채움
-# df_selected.fillna(df_selected.median(),inplace=True)  # 결측치를 평균값으로 채움
+# 학습/테스트 데이터 나누기
+x_train, x_test, y_train, y_test = train_test_split(x,y,test_size=0.2,stratify=y, random_state=12)
 
-# 스케일링
+# 스케일링/정규화  // standardScalar 사용
+scalar = StandardScaler()
+scaled_data = scalar.fit_transform(df_selected)
 
-# 정규화
+print("Standardization 적용 후 데이터: \n", scaled_data)
 
-# 모델 학습
+# 인코딩
+
+# 샘플링
+
+# 모델 학습 
